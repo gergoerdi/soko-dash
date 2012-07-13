@@ -17,8 +17,8 @@ data Field = Wall
            | Lambda
            | LambdaLift
            | Earth
-           | Space
-           deriving Show
+           | Empty
+           deriving (Eq, Show)
 
 fieldToChar :: Field -> Char
 fieldToChar Wall = '#'
@@ -26,14 +26,14 @@ fieldToChar Rock = '*'
 fieldToChar Lambda = 'λ'
 fieldToChar LambdaLift = 'L'
 fieldToChar Earth = '.'
-fieldToChar Space = ' '
+fieldToChar Empty = ' '
 
 charToField '#' = Wall
 charToField '*' = Rock
 charToField '\\' = Lambda
 charToField 'L' = LambdaLift
 charToField '.' = Earth
-charToField ' ' = Space
+charToField ' ' = Empty
 
 type Pos = (Int, Int)
 type World = Array Pos Field
@@ -62,7 +62,7 @@ instance Show State where
 parseLine :: String -> ([Field], Maybe Int)
 parseLine = second msum . unzip . zipWith fromChar [1..]
   where
-    fromChar x 'R' = (Space, Just x)
+    fromChar x 'R' = (Empty, Just x)
     fromChar _ c = (charToField c, Nothing)
 
 parse :: String -> State
