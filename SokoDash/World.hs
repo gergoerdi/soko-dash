@@ -65,17 +65,20 @@ parseLine = second msum . unzip . zipWith fromChar [1..]
     fromChar x 'R' = (Space, Just x)
     fromChar _ c = (charToField c, Nothing)
 
-parse :: [String] -> State
-parse ss = State{ stateWorld = world
-                , statePos = pos
-                , stateLambdaCollected = 0
-                }
+parse :: String -> State
+parse s = State{ stateWorld = world
+               , statePos = pos
+               , stateLambdaCollected = 0
+               }
   where
-    (lines, Just pos) = second msum $ unzip $ zipWith line [1..] ss
+    ss :: [String]
+    ss = lines s
 
-    line :: Int -> String -> ([Field], Maybe Pos)
-    line y = second (fmap (,y)) . parseLine
-    world = fromLists lines
+    (rows, Just pos) = second msum $ unzip $ zipWith row [1..] ss
+
+    row :: Int -> String -> ([Field], Maybe Pos)
+    row y = second (fmap (,y)) . parseLine
+    world = fromLists rows
 
 fromLists :: [[a]] -> Array Pos a
 fromLists xss = Array.array ((1,1), (w, h))
