@@ -20,13 +20,14 @@ data Field = Wall
            | Empty
            deriving (Eq, Show)
 
-fieldToChar :: Field -> Char
-fieldToChar Wall = '#'
-fieldToChar Rock = '*'
-fieldToChar Lambda = 'λ'
-fieldToChar LambdaLift = 'L'
-fieldToChar Earth = '.'
-fieldToChar Empty = ' '
+fieldToChar :: Bool -> Field -> Char
+fieldToChar _ Wall = '#'
+fieldToChar _ Rock = '*'
+fieldToChar _ Lambda = 'λ'
+fieldToChar False LambdaLift = 'L'
+fieldToChar True LambdaLift = 'O'
+fieldToChar _ Earth = '.'
+fieldToChar _ Empty = ' '
 
 charToField '#' = Wall
 charToField '*' = Rock
@@ -46,10 +47,10 @@ data State = State{ stateWorld :: World
 instance Show State where
     show State{..} = unlines [worldMap, score]
       where
-        worldMap = unlines . map (map fieldToChar') $ cells
+        worldMap = unlines . map (map (fieldToChar' $ stateLambdaRemaining == 0)) $ cells
         score = show stateLambdaCollected
 
-        fieldToChar' = maybe 'R' fieldToChar
+        fieldToChar' open = maybe 'R' (fieldToChar open)
 
         cells :: [[Maybe Field]]
         cells = transpose . strip . toRows $ stateWorld
