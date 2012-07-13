@@ -27,6 +27,6 @@ main = do
                 _ -> Wait
         case processInput input s of
             NewState s' -> loop $ simulate s'
-            Finished -> putStrLn "Finished"
+            Finished n -> putStrLn $ unwords ["Finished with", show n, "lambdas"]
             InvalidInput -> putStrLn "You can't get ye flask!" >> loop s
 

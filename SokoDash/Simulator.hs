@@ -30,7 +30,7 @@ moveDir d (x, y) = (x + dx, y + dy)
         Up    -> (0, -1)
         Down  -> (0, 1)
 
-data InputResult = InvalidInput | NewState State | Finished
+data InputResult = InvalidInput | NewState State | Finished Int
 
 processInput :: Input -> State -> InputResult
 processInput input s@State{..} = case input of
@@ -39,7 +39,7 @@ processInput input s@State{..} = case input of
         Empty -> NewState $ move s
         Earth -> NewState $ clear . move $ s
         Lambda -> NewState $ collect . clear . move $ s
-        LambdaLift | stateLambdaRemaining == 0 -> Finished
+        LambdaLift | stateLambdaRemaining == 0 -> Finished stateLambdaCollected
         Rock -> case dir of
             Left | stateWorld!pos'' == Empty -> NewState $ push . clear . move $ s
             Right | stateWorld!pos'' == Empty -> NewState $ push . clear . move $ s
