@@ -18,7 +18,6 @@ main = do
     flip fix s $ \loop s -> do
         print s
         inp <- getLine
-        print inp
         let input = case map toUpper inp of
                 "W" -> Dir Up
                 "A" -> Dir Left
