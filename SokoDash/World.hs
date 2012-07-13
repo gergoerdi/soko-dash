@@ -40,7 +40,7 @@ type World = Array Pos Field
 
 data State = State{ stateWorld :: World
                   , statePos :: Pos
-                  , stateLambdaCollected :: Int
+                  , stateLambdaRemaining, stateLambdaCollected :: Int
                   }
 
 instance Show State where
@@ -68,6 +68,7 @@ parseLine = second msum . unzip . zipWith fromChar [1..]
 parse :: String -> State
 parse s = State{ stateWorld = world
                , statePos = pos
+               , stateLambdaRemaining = sum . map (count (== Lambda)) $ rows
                , stateLambdaCollected = 0
                }
   where
@@ -79,6 +80,9 @@ parse s = State{ stateWorld = world
     row :: Int -> String -> ([Field], Maybe Pos)
     row y = second (fmap (,y)) . parseLine
     world = fromLists rows
+
+count :: (a -> Bool) -> [a] -> Int
+count p = length . filter p
 
 fromLists :: [[a]] -> Array Pos a
 fromLists xss = Array.array ((1,1), (w, h))
