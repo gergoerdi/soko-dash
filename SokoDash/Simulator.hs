@@ -2,7 +2,7 @@
 {-# LANGUAGE TupleSections #-}
 module SokoDash.Simulator
        ( Dir(..), Input(..)
-       , InputResult(..), processInput
+       , InputResult(..), processInput, checkIfBroken
        , simulate
        ) where
 
@@ -30,7 +30,7 @@ moveDir d (x, y) = (x + dx, y + dy)
         Up    -> (0, -1)
         Down  -> (0, 1)
 
-data InputResult = InvalidInput | NewState State | Finished Int
+data InputResult = InvalidInput | NewState State | Finished Int | BrokenRobot State
 
 processInput :: Input -> State -> InputResult
 processInput input s@State{..} = case input of
@@ -40,9 +40,9 @@ processInput input s@State{..} = case input of
         Earth -> NewState $ clear . move $ s
         Lambda -> NewState $ collect . clear . move $ s
         LambdaLift | stateLambdaRemaining == 0 -> Finished stateLambdaCollected
-        Rock -> case dir of
-            Left | stateWorld!pos'' == Empty -> NewState $ push . clear . move $ s
-            Right | stateWorld!pos'' == Empty -> NewState $ push . clear . move $ s
+        Rock f -> case dir of
+            Left  | stateWorld!pos'' == Empty -> NewState $ push f . clear . move $ s
+            Right | stateWorld!pos'' == Empty -> NewState $ push f . clear . move $ s
             _ -> InvalidInput
         _ -> InvalidInput
       where
@@ -53,7 +53,15 @@ processInput input s@State{..} = case input of
         collect s = s{ stateLambdaRemaining = pred stateLambdaRemaining
                      , stateLambdaCollected = succ stateLambdaCollected
                      }
-        push s@State{..} = s{ stateWorld = stateWorld // [(pos'', Rock)] }
+        push f s@State{..} = s{ stateWorld = stateWorld // [(pos'', Rock f)] }
+
+checkIfBroken :: InputResult -> InputResult
+checkIfBroken r@(NewState s) =
+    case stateWorld!(moveDir Up statePos) of
+        Rock True -> BrokenRobot s'
+        _         -> r
+    where s'@State{..} = simulate s
+checkIfBroken r = r
 
 simulate :: State -> State
 simulate s@State{..} = s{ stateWorld = simulateWorld statePos stateWorld }
@@ -65,23 +73,25 @@ simulateWorld pos w = Array.array b $ copy ++ rocks
     xs = Array.assocs w
 
     removeRock :: Field -> Field
-    removeRock Rock = Empty
+    removeRock (Rock _) = Empty
     removeRock f = f
 
     copy :: [(Pos, Field)]
     copy = map (second removeRock) xs
 
     rocks :: [(Pos, Field)]
-    rocks = mapMaybe (fmap (, Rock) . rockPos') xs
+    rocks = mapMaybe rockPos' xs
       where
         rockPos' (p, f) = case f of
-            Rock -> Just (rockPos p)
+            Rock _ ->
+                let p' = rockPos p
+                in  Just (p', if p == p' then Rock False else Rock True)
             _ -> Nothing
 
     rockPos :: Pos -> Pos
     rockPos (x, y) | empty (x, y+1) = (x, y+1)
                    | otherwise = case w!(x, y+1) of
-        Rock   | rollRight  -> (x+1, y+1)
+        Rock _ | rollRight  -> (x+1, y+1)
                | rollLeft   -> (x-1, y+1)
         Lambda | rollRight  -> (x+1, y+1)
         _                   -> (x, y)

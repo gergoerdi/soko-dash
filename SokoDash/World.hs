@@ -13,7 +13,7 @@ import Data.Function (on)
 import Data.List (groupBy, transpose)
 
 data Field = Wall
-           | Rock
+           | Rock Bool
            | Lambda
            | LambdaLift
            | Earth
@@ -22,7 +22,7 @@ data Field = Wall
 
 fieldToChar :: Bool -> Field -> Char
 fieldToChar _ Wall = '#'
-fieldToChar _ Rock = '*'
+fieldToChar _ (Rock _) = '*'
 fieldToChar _ Lambda = 'λ'
 fieldToChar False LambdaLift = 'L'
 fieldToChar True LambdaLift = 'O'
@@ -30,7 +30,7 @@ fieldToChar _ Earth = '.'
 fieldToChar _ Empty = ' '
 
 charToField '#' = Wall
-charToField '*' = Rock
+charToField '*' = Rock False
 charToField '\\' = Lambda
 charToField 'L' = LambdaLift
 charToField '.' = Earth
