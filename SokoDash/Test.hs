@@ -19,21 +19,19 @@ main = do
     let inps = solve s
     putStrLn $ concatMap show inps
 
-{-
-    flip fix s $ \loop s -> do
-        print s
-        inp <- getLine
-        let input = case map toUpper inp of
-                "W" -> Dir Up
-                "A" -> Dir Left
-                "S" -> Dir Down
-                "D" -> Dir Right
-                _ -> Wait
-        case processInput input s of
-            NewState s'    -> case simulate s' of
-                SimulateNewState s'' -> loop s''
-                SimulateDead n -> putStrLn $ unwords ["Dead with", show n, "lambdas"]
-            Finished n     -> putStrLn $ unwords ["Finished with", show n, "lambdas"]
-            InvalidInput   -> putStrLn "You can't get ye flask!" >> loop s
+    -- flip fix s $ \loop s -> do
+    --     print s
+    --     inp <- getLine
+    --     let input = case map toUpper inp of
+    --             "W" -> Dir Up
+    --             "A" -> Dir Left
+    --             "S" -> Dir Down
+    --             "D" -> Dir Right
+    --             _ -> Wait
+    --     case processInput input s of
+    --         NewState s'    -> case simulate s' of
+    --             SimulateNewState s'' -> loop s''
+    --             SimulateDead n -> putStrLn $ unwords ["Dead with", show n, "lambdas"]
+    --         Finished n     -> putStrLn $ unwords ["Finished with", show n, "lambdas"]
+    --         InvalidInput   -> putStrLn "You can't get ye flask!" >> loop s
 
--}
