@@ -13,6 +13,7 @@ import qualified Data.Set as Set
 import Data.Maybe (mapMaybe, fromJust)
 import Data.Map (Map)
 import qualified Data.Map as Map
+import Control.Monad (guard)
 
 import Debug.Trace
 
@@ -66,7 +67,9 @@ solve s0 = steps
       where
         f inp = case processInput inp s of
             NewState s'    -> case simulate s' of
-                SimulateNewState s'' -> Just $ StepTo s''
+                SimulateNewState s'' -> do
+                    guard $ s'' /= s
+                    return $ StepTo s''
                 SimulateDead n -> Just $ Die n
             Finished n     -> Just $ Win n
             InvalidInput   -> Nothing

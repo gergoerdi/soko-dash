@@ -24,7 +24,7 @@ data Dir = Left | Right | Up | Down deriving (Eq, Ord)
 data Input = Dir Dir | Wait deriving (Eq, Ord)
 
 allInputs :: [Input]
-allInputs = map Dir [Left, Right, Up, Down]
+allInputs = Wait:map Dir [Left, Right, Up, Down]
 
 moveDir :: Dir -> (Int, Int) -> (Int, Int)
 moveDir d (x, y) = (x + dx, y + dy)
