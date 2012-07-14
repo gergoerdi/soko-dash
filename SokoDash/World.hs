@@ -10,7 +10,8 @@ import qualified Data.Array as Array
 import Control.Arrow (second)
 import Control.Monad (msum)
 import Data.Function (on)
-import Data.List (groupBy, transpose)
+import Data.List (groupBy, transpose, find)
+import Data.Maybe (fromJust)
 
 data Field = Wall
            | Rock
@@ -41,6 +42,7 @@ type World = Array Pos Field
 
 data State = State{ stateWorld :: World
                   , statePos :: Pos
+                  , stateLiftPos :: Pos
                   , stateLambdaRemaining, stateLambdaCollected :: Int
                   }
            deriving (Eq, Ord)
@@ -70,6 +72,7 @@ parseLine = second msum . unzip . zipWith fromChar [1..]
 parse :: String -> State
 parse s = State{ stateWorld = world
                , statePos = pos
+               , stateLiftPos = liftPos
                , stateLambdaRemaining = sum . map (count (== Lambda)) $ rows
                , stateLambdaCollected = 0
                }
@@ -82,6 +85,9 @@ parse s = State{ stateWorld = world
     row :: Int -> String -> ([Field], Maybe Pos)
     row y = second (fmap (,y)) . parseLine
     world = fromLists rows
+
+    liftPos :: Pos
+    liftPos = fst $ fromJust $ find (\(_, f) -> f == LambdaLift) $ Array.assocs world
 
 count :: (a -> Bool) -> [a] -> Int
 count p = length . filter p

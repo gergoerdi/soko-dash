@@ -1,5 +1,4 @@
-{-# OPTIONS_GHC -main-is SokoDash.Test #-}
-module SokoDash.Test where
+module Main where
 
 import Prelude hiding (Left, Right)
 import SokoDash.World

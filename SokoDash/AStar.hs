@@ -38,11 +38,9 @@ heuristic (Win _) = 0
 heuristic (StepTo State{..}) = dists
   where
     dists | stateLambdaRemaining > 0 = manhattans $ statePos:lambdas
-          | otherwise = rho statePos llift
+          | otherwise = rho statePos stateLiftPos
     lambdas :: [Pos]
     lambdas = map fst . filter ((== Lambda) . snd) . Array.assocs $ stateWorld
-    llift :: Pos
-    llift = (1, 5)
 
 rho :: Pos -> Pos -> Int
 rho (x1, y1) (x2, y2) = abs (x1 - x2) + abs (y1 - y2)
