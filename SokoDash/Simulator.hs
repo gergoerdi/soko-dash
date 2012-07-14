@@ -49,11 +49,11 @@ processInput input s@State{..} = case input of
         pos' = moveDir dir statePos
         pos'' = moveDir dir pos'
         move s = s{ statePos = pos' }
-        clear s = s{ stateWorld = stateWorld // [(pos', Empty)] }
+        clear s@State{..} = s{ stateWorld = stateWorld // [(pos', Empty)] }
         collect s = s{ stateLambdaRemaining = pred stateLambdaRemaining
                      , stateLambdaCollected = succ stateLambdaCollected
                      }
-        push s = s{ stateWorld = stateWorld // [(pos'', Rock)] }
+        push s@State{..} = s{ stateWorld = stateWorld // [(pos'', Rock)] }
 
 simulate :: State -> State
 simulate s@State{..} = s{ stateWorld = simulateWorld statePos stateWorld }
