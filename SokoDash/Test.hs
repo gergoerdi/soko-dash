@@ -24,8 +24,9 @@ main = do
                 "S" -> Dir Down
                 "D" -> Dir Right
                 _ -> Wait
-        case checkIfBroken $ processInput input s of
-            NewState s'    -> loop $ simulate s'
+        case processInput input s of
+            NewState s'    -> case simulate s' of
+                SimulateNewState s'' -> loop s''
+                SimulateDead n -> putStrLn $ unwords ["Dead with", show n, "lambdas"]
             Finished n     -> putStrLn $ unwords ["Finished with", show n, "lambdas"]
             InvalidInput   -> putStrLn "You can't get ye flask!" >> loop s
-            BrokenRobot s' -> putStrLn "Whoops! The robot is broken ;-(" >> print s'

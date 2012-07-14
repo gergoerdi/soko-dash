@@ -2,8 +2,8 @@
 {-# LANGUAGE TupleSections #-}
 module SokoDash.Simulator
        ( Dir(..), Input(..)
-       , InputResult(..), processInput, checkIfBroken
-       , simulate
+       , InputResult(..), processInput
+       , SimulateResult(..), simulate
        ) where
 
 import SokoDash.World
@@ -15,6 +15,8 @@ import Data.Array ((!), (//))
 import qualified Data.Array as Array
 import Control.Arrow (second, (&&&))
 import Data.Maybe (mapMaybe)
+import Control.Monad (guard)
+import Control.Applicative ((<$>))
 
 import Debug.Trace
 
@@ -30,7 +32,7 @@ moveDir d (x, y) = (x + dx, y + dy)
         Up    -> (0, -1)
         Down  -> (0, 1)
 
-data InputResult = InvalidInput | NewState State | Finished Int | BrokenRobot State
+data InputResult = InvalidInput | NewState State | Finished Int
 
 processInput :: Input -> State -> InputResult
 processInput input s@State{..} = case input of
@@ -40,9 +42,9 @@ processInput input s@State{..} = case input of
         Earth -> NewState $ clear . move $ s
         Lambda -> NewState $ collect . clear . move $ s
         LambdaLift | stateLambdaRemaining == 0 -> Finished stateLambdaCollected
-        Rock f -> case dir of
-            Left  | stateWorld!pos'' == Empty -> NewState $ push f . clear . move $ s
-            Right | stateWorld!pos'' == Empty -> NewState $ push f . clear . move $ s
+        Rock -> case dir of
+            Left  | stateWorld!pos'' == Empty -> NewState $ push . clear . move $ s
+            Right | stateWorld!pos'' == Empty -> NewState $ push . clear . move $ s
             _ -> InvalidInput
         _ -> InvalidInput
       where
@@ -53,50 +55,51 @@ processInput input s@State{..} = case input of
         collect s = s{ stateLambdaRemaining = pred stateLambdaRemaining
                      , stateLambdaCollected = succ stateLambdaCollected
                      }
-        push f s@State{..} = s{ stateWorld = stateWorld // [(pos'', Rock f)] }
+        push s@State{..} = s{ stateWorld = stateWorld // [(pos'', Rock)] }
 
-checkIfBroken :: InputResult -> InputResult
-checkIfBroken r@(NewState s) =
-    case stateWorld!(moveDir Up statePos) of
-        Rock True -> BrokenRobot s'
-        _         -> r
-    where s'@State{..} = simulate s
-checkIfBroken r = r
+data SimulateResult = SimulateNewState State | SimulateDead Int
 
-simulate :: State -> State
-simulate s@State{..} = s{ stateWorld = simulateWorld statePos stateWorld }
+simulate :: State -> SimulateResult
+simulate s@State{..} = case simulateWorld statePos stateWorld of
+    Just w -> SimulateNewState s{ stateWorld = w }
+    Nothing -> SimulateDead stateLambdaCollected
 
-simulateWorld :: Pos -> World -> World
-simulateWorld pos w = Array.array b $ copy ++ rocks
+simulateWorld :: Pos -> World -> Maybe World
+simulateWorld pos w = Array.array b . (copy ++) <$> rocks
   where
     b = Array.bounds w
     xs = Array.assocs w
 
     removeRock :: Field -> Field
-    removeRock (Rock _) = Empty
+    removeRock Rock = Empty
     removeRock f = f
 
     copy :: [(Pos, Field)]
     copy = map (second removeRock) xs
 
-    rocks :: [(Pos, Field)]
-    rocks = mapMaybe rockPos' xs
+    rocks :: Maybe [(Pos, Field)]
+    rocks = sequence $ mapMaybe rockPos' xs
       where
         rockPos' (p, f) = case f of
-            Rock _ ->
+            Rock ->
                 let p' = rockPos p
-                in  Just (p', if p == p' then Rock False else Rock True)
+                in Just $ (,Rock) <$> p'
             _ -> Nothing
 
-    rockPos :: Pos -> Pos
-    rockPos (x, y) | empty (x, y+1) = (x, y+1)
+    rockPos :: Pos -> Maybe Pos
+    rockPos (x, y) | empty (x, y+1) = fall (x, y+1)
                    | otherwise = case w!(x, y+1) of
-        Rock _ | rollRight  -> (x+1, y+1)
-               | rollLeft   -> (x-1, y+1)
-        Lambda | rollRight  -> (x+1, y+1)
-        _                   -> (x, y)
+        Rock   | rollRight  -> fall (x+1, y+1)
+               | rollLeft   -> fall (x-1, y+1)
+        Lambda | rollRight  -> fall (x+1, y+1)
+        _                   -> stay (x, y)
       where
         empty p = p /= pos && w!p == Empty
 
         rollRight = all empty [(x+1, y), (x+1, y+1)]
         rollLeft = all empty [(x-1, y), (x-1, y+1)]
+
+        stay p = Just p
+        fall (x, y) = do
+            guard $ (x, y+1) /= pos
+            return (x, y)
