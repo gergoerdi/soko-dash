@@ -1,8 +1,10 @@
+{-# OPTIONS_GHC -main-is SokoDash.Test #-}
 module SokoDash.Test where
 
 import Prelude hiding (Left, Right)
 import SokoDash.World
 import SokoDash.Simulator
+import SokoDash.AStar
 
 import Control.Applicative
 import System.IO
@@ -15,6 +17,9 @@ main = do
     [infile] <- getArgs
     s <- parse <$> readFile infile
 
+    print $ solve s
+
+{-
     flip fix s $ \loop s -> do
         print s
         inp <- getLine
@@ -30,3 +35,4 @@ main = do
                 SimulateDead n -> putStrLn $ unwords ["Dead with", show n, "lambdas"]
             Finished n     -> putStrLn $ unwords ["Finished with", show n, "lambdas"]
             InvalidInput   -> putStrLn "You can't get ye flask!" >> loop s
+-}

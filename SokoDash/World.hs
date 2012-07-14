@@ -18,7 +18,7 @@ data Field = Wall
            | LambdaLift
            | Earth
            | Empty
-           deriving (Eq, Show)
+           deriving (Eq, Ord, Show)
 
 fieldToChar :: Bool -> Field -> Char
 fieldToChar _ Wall = '#'
@@ -43,6 +43,7 @@ data State = State{ stateWorld :: World
                   , statePos :: Pos
                   , stateLambdaRemaining, stateLambdaCollected :: Int
                   }
+           deriving (Eq, Ord)
 
 instance Show State where
     show State{..} = unlines [worldMap, score]

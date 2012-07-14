@@ -1,7 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections #-}
 module SokoDash.Simulator
-       ( Dir(..), Input(..)
+       ( Dir(..), Input(..), allInputs
        , InputResult(..), processInput
        , SimulateResult(..), simulate
        ) where
@@ -20,8 +20,11 @@ import Control.Applicative ((<$>))
 
 import Debug.Trace
 
-data Dir = Left | Right | Up | Down
-data Input = Dir Dir | Wait
+data Dir = Left | Right | Up | Down deriving (Eq, Ord)
+data Input = Dir Dir | Wait deriving (Eq, Ord)
+
+allInputs :: [Input]
+allInputs = map Dir [Left, Right, Up, Down]
 
 moveDir :: Dir -> (Int, Int) -> (Int, Int)
 moveDir d (x, y) = (x + dx, y + dy)
