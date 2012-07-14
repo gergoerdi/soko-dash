@@ -37,7 +37,7 @@ heuristic (Die _) = 9999999
 heuristic (Win _) = 0
 heuristic (StepTo State{..}) = dists
   where
-    dists | stateLambdaRemaining > 0 = manhattans $ statePos:lambdas
+    dists | stateLambdaRemaining > 0 = manhattans $ statePos:stateLiftPos:lambdas
           | otherwise = rho statePos stateLiftPos
     lambdas :: [Pos]
     lambdas = map fst . filter ((== Lambda) . snd) . Array.assocs $ stateWorld
