@@ -23,6 +23,17 @@ import Debug.Trace
 data Dir = Left | Right | Up | Down deriving (Eq, Ord)
 data Input = Dir Dir | Wait deriving (Eq, Ord)
 
+instance Show Dir where
+    show d = case d of
+        Left -> "L"
+        Right -> "R"
+        Up -> "U"
+        Down -> "D"
+
+instance Show Input where
+    show (Dir d) = show d
+    show Wait = "W"
+
 allInputs :: [Input]
 allInputs = Wait:map Dir [Left, Right, Up, Down]
 

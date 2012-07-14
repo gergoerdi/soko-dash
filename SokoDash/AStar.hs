@@ -20,6 +20,18 @@ import Debug.Trace
 data Step = StepTo State | Win Int | Die Int
           deriving (Eq, Ord, Show)
 
+data Move = Move Input Step
+          deriving Show
+
+moveStep :: Move -> Step
+moveStep (Move _ step) = step
+
+instance Eq Move where
+    (==) = (==) `on` moveStep
+
+instance Ord Move where
+    compare = compare `on` moveStep
+
 heuristic :: Step -> Int
 heuristic (Die _) = 9999999
 heuristic (Win _) = 0
@@ -57,15 +69,20 @@ distance (StepTo s1) (StepTo s2) = 1
 distance (StepTo s) (Die _) = 999999
 distance (StepTo s) (Win _) = 1
 
--- solve :: State ->
-solve s0 = steps
+solve :: State -> [Input]
+solve s0 = fixup steps
   where
-    steps = aStar neighbours distance heuristic finished step0
-    step0 = StepTo s0
+    fixup :: Maybe [Move] -> [Input]
+    fixup = maybe [] $ map f
+      where
+        f (Move inp _) = inp
+
+    steps = aStar (neighbours . moveStep) (distance `on` moveStep) (heuristic . moveStep) (finished . moveStep) step0
+    step0 = Move Wait $ StepTo s0
 
     neighbours (StepTo s) = Set.fromList $ mapMaybe f allInputs
       where
-        f inp = case processInput inp s of
+        f inp = fmap (Move inp) $ case processInput inp s of
             NewState s'    -> case simulate s' of
                 SimulateNewState s'' -> do
                     guard $ s'' /= s

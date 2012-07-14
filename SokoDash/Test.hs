@@ -17,7 +17,8 @@ main = do
     [infile] <- getArgs
     s <- parse <$> readFile infile
 
-    print $ solve s
+    let inps = solve s
+    putStrLn $ concatMap show inps
 
 {-
     flip fix s $ \loop s -> do
@@ -35,4 +36,5 @@ main = do
                 SimulateDead n -> putStrLn $ unwords ["Dead with", show n, "lambdas"]
             Finished n     -> putStrLn $ unwords ["Finished with", show n, "lambdas"]
             InvalidInput   -> putStrLn "You can't get ye flask!" >> loop s
+
 -}
