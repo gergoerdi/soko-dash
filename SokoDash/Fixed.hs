@@ -11,15 +11,15 @@ import Data.Function (on)
 
 import Debug.Trace
 
-fixed :: World -> Array Pos Bool
-fixed w = arr
+fixed :: Bool -> World -> Array Pos Bool
+fixed open w = arr
   where
     arr :: Array Pos Bool
     arr = Array.array (Array.bounds w) $ map (id &&& f) $ range (Array.bounds w)
 
     f pos@(x, y) = case w!pos of
         Wall -> True
-        LambdaLift -> True
+        LambdaLift -> not open
         Rock -> supported pos && (blocking (x-1, y) || blocking (x+1, y))
         _ -> False
 
@@ -29,7 +29,7 @@ fixed w = arr
     blocking :: Pos -> Bool
     blocking pos = case w!pos of
         Wall -> True
-        LambdaLift -> True
+        LambdaLift -> not open
         Rock -> supported pos
         _ -> False
 

@@ -5,6 +5,9 @@ import qualified Data.Array as Array
 import qualified Data.Array.ST as Array
 import Data.Ix
 import Control.Monad (replicateM_, forM_, when, unless)
+import Data.Function (fix)
+
+import Data.STRef
 
 -- | Given a bitmap and a starting point, calculate all points
 -- accessable from that starting point, not including the blocked points
@@ -12,12 +15,17 @@ fill :: (Num a, Num b, Ix a, Ix b) => Array (a, b) Bool -> (a, b) -> Array (a, b
 fill arr p0 = Array.runSTArray $ do
     arr' <- Array.newArray bounds False
     Array.writeArray arr' p0 True
-    replicateM_ (rangeSize bounds) $ do
+    fix $ \loop -> do
+        changed <- newSTRef False
         forM_ (range bounds) $ \p -> do
             unless (arr!p) $ do
                 bs <- mapM (Array.readArray arr') (neighbours p)
-                when (or bs) $
-                  Array.writeArray arr' p True
+                b <- Array.readArray arr' p
+                when (not b && or bs) $ do
+                    writeSTRef changed True
+                    Array.writeArray arr' p True
+        changed <- readSTRef changed
+        when changed loop
     return arr'
   where
     bounds = Array.bounds arr
