@@ -3,7 +3,8 @@ module SokoDash.Fixed (fixed, showFixed) where
 import SokoDash.World
 
 import Data.Array (Array, (!))
-import Data.Array as Array
+import qualified Data.Array as Array
+import Data.Ix
 import Control.Arrow ((&&&))
 import Data.List (transpose, groupBy)
 import Data.Function (on)
