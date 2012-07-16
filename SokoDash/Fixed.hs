@@ -11,27 +11,36 @@ import Data.Function (on)
 
 import Debug.Trace
 
+data Fixedness = Fixed
+               | Movable
+               | NonFixed
+
 fixed :: Bool -> World -> Array Pos Bool
 fixed open w = arr
   where
     arr :: Array Pos Bool
     arr = Array.array (Array.bounds w) $ map (id &&& f) $ range (Array.bounds w)
 
-    f pos@(x, y) = case w!pos of
-        Wall -> True
-        LambdaLift -> not open
-        Rock -> supported pos && (blocking (x-1, y) || blocking (x+1, y))
-        _ -> False
+    f pos@(x, y) = case fixedness pos of
+        Fixed -> True
+        Movable -> blocking (x-1, y) || blocking (x+1, y)
+        NonFixed -> False
 
     supported :: Pos -> Bool
     supported (x, y) = arr!(x, y+1)
 
     blocking :: Pos -> Bool
-    blocking pos = case w!pos of
-        Wall -> True
-        LambdaLift -> not open
-        Rock -> supported pos
-        _ -> False
+    blocking pos = case fixedness pos of
+        Fixed -> True
+        Movable -> supported pos
+        NonFixed -> False
+
+    fixedness :: Pos -> Fixedness
+    fixedness pos = case w!pos of
+        Wall -> Fixed
+        LambdaLift -> if open then NonFixed else Fixed
+        Rock -> Movable
+        _ -> NonFixed
 
 showFixed :: Array Pos Bool -> String
 showFixed = unlines . map (map toChar) . toLists
