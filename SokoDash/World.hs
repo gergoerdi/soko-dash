@@ -80,7 +80,13 @@ parse s = State{ stateWorld = world
                }
   where
     ss :: [String]
-    ss = lines s
+    ss = normalize $ lines s
+
+    normalize :: [String] -> [String]
+    normalize ss = map pad ss
+      where
+        n = maximum $ map length ss
+        pad s = let k = n - length s in s ++ replicate k ' '
 
     (rows, Just pos) = second msum $ unzip $ zipWith row [1..] ss
 
