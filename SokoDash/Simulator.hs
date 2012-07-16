@@ -55,11 +55,15 @@ processInput input s@State{..} = case input of
         Empty -> NewState $ move s
         Earth -> NewState $ clear . move $ s
         Lambda -> NewState $ collect . clear . move $ s
-        LambdaLift | stateLambdaRemaining == 0 -> Finished stateLambdaCollected
         Rock -> case dir of
-            Left  | stateWorld!pos'' == Empty -> NewState $ push . clear . move $ s
-            Right | stateWorld!pos'' == Empty -> NewState $ push . clear . move $ s
+            Left  | stateWorld!pos'' == Empty -> NewState $ move . push $ s
+            Right | stateWorld!pos'' == Empty -> NewState $ move . push $ s
             _ -> InvalidInput
+        Closure -> case dir of
+            Left  | stateWorld!pos'' == Empty -> NewState $ move . push $ s
+            Right | stateWorld!pos'' == Empty -> NewState $ move . push $ s
+            _ -> InvalidInput
+        LambdaLift | stateLambdaRemaining == 0 -> Finished stateLambdaCollected
         _ -> InvalidInput
       where
         pos' = moveDir dir statePos
@@ -69,7 +73,7 @@ processInput input s@State{..} = case input of
         collect s = s{ stateLambdaRemaining = pred stateLambdaRemaining
                      , stateLambdaCollected = succ stateLambdaCollected
                      }
-        push s@State{..} = s{ stateWorld = stateWorld // [(pos'', Rock)] }
+        push s@State{..} = s{ stateWorld = stateWorld // [(pos', Empty), (pos'', stateWorld!pos')] }
 
 data SimulateResult = SimulateNewState State | SimulateDead Int
 
