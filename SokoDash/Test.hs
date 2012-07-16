@@ -14,7 +14,7 @@ import Data.Char (toUpper)
 
 main = do
     [infile] <- getArgs
-    s <- parse <$> readFile infile
+    s <- parse . unlines . takeWhile (not . null) . lines <$> readFile infile
 
     let inps = solve s
     putStrLn $ concatMap show inps
