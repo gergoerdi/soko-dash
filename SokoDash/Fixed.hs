@@ -39,6 +39,7 @@ fixed open w = arr
     fixedness pos = case w!pos of
         Wall -> Fixed
         LambdaLift -> if open then NonFixed else Fixed
+        Closure -> Movable
         Rock -> Movable
         _ -> NonFixed
 

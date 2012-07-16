@@ -16,6 +16,7 @@ import Data.Maybe (fromJust)
 data Field = Wall
            | Rock
            | Lambda
+           | Closure
            | LambdaLift
            | Earth
            | Empty
@@ -25,8 +26,8 @@ fieldToChar :: Bool -> Field -> Char
 fieldToChar _ Wall = '#'
 fieldToChar _ Rock = '*'
 fieldToChar _ Lambda = 'λ'
-fieldToChar False LambdaLift = 'L'
-fieldToChar True LambdaLift = 'O'
+fieldToChar _ Closure = '@'
+fieldToChar open LambdaLift = if open then 'O' else 'L'
 fieldToChar _ Earth = '.'
 fieldToChar _ Empty = ' '
 
@@ -35,6 +36,7 @@ charToField '*' = Rock
 charToField '\\' = Lambda
 charToField 'L' = LambdaLift
 charToField '.' = Earth
+charToField '@' = Closure
 charToField ' ' = Empty
 
 type Pos = (Int, Int)
@@ -73,7 +75,7 @@ parse :: String -> State
 parse s = State{ stateWorld = world
                , statePos = pos
                , stateLiftPos = liftPos
-               , stateLambdaRemaining = sum . map (count (== Lambda)) $ rows
+               , stateLambdaRemaining = sum . map (count isLambda) $ rows
                , stateLambdaCollected = 0
                }
   where
@@ -88,6 +90,10 @@ parse s = State{ stateWorld = world
 
     liftPos :: Pos
     liftPos = fst $ fromJust $ find (\(_, f) -> f == LambdaLift) $ Array.assocs world
+
+    isLambda Lambda = True
+    isLambda Closure = True
+    isLambda _ = False
 
 count :: (a -> Bool) -> [a] -> Int
 count p = length . filter p
