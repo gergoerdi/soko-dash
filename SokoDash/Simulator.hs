@@ -8,8 +8,6 @@ module SokoDash.Simulator
 
 import SokoDash.World
 
-import Prelude hiding (Left, Right)
-
 import Data.Ix
 import Data.Array ((!), (//))
 import qualified Data.Array as Array
@@ -20,31 +18,31 @@ import Control.Applicative ((<$>))
 
 import Debug.Trace
 
-data Dir = Left | Right | Up | Down deriving (Eq, Ord)
+data Dir = DLeft | DRight | DUp | DDown deriving (Eq, Ord)
 data Input = Dir Dir | Wait deriving (Eq, Ord)
 
 instance Show Dir where
     show d = case d of
-        Left -> "L"
-        Right -> "R"
-        Up -> "U"
-        Down -> "D"
+        DLeft -> "L"
+        DRight -> "R"
+        DUp -> "U"
+        DDown -> "D"
 
 instance Show Input where
     show (Dir d) = show d
     show Wait = "W"
 
 allInputs :: [Input]
-allInputs = Wait:map Dir [Left, Right, Up, Down]
+allInputs = Wait:map Dir [DLeft, DRight, DUp, DDown]
 
 moveDir :: Dir -> (Int, Int) -> (Int, Int)
 moveDir d (x, y) = (x + dx, y + dy)
   where
     (dx, dy) = case d of
-        Left  -> (-1, 0)
-        Right -> (1, 0)
-        Up    -> (0, -1)
-        Down  -> (0, 1)
+        DLeft  -> (-1, 0)
+        DRight -> (1, 0)
+        DUp    -> (0, -1)
+        DDown  -> (0, 1)
 
 data InputResult = InvalidInput | NewState State | Finished Int
 
@@ -56,12 +54,12 @@ processInput input s@State{..} = case input of
         Earth -> NewState $ clear . move $ s
         Lambda -> NewState $ collect . clear . move $ s
         Rock -> case dir of
-            Left  | stateWorld!pos'' == Empty -> NewState $ move . push $ s
-            Right | stateWorld!pos'' == Empty -> NewState $ move . push $ s
+            DLeft  | stateWorld!pos'' == Empty -> NewState $ move . push $ s
+            DRight | stateWorld!pos'' == Empty -> NewState $ move . push $ s
             _ -> InvalidInput
         Closure -> case dir of
-            Left  | stateWorld!pos'' == Empty -> NewState $ move . push $ s
-            Right | stateWorld!pos'' == Empty -> NewState $ move . push $ s
+            DLeft  | stateWorld!pos'' == Empty -> NewState $ move . push $ s
+            DRight | stateWorld!pos'' == Empty -> NewState $ move . push $ s
             _ -> InvalidInput
         LambdaLift | stateLambdaRemaining == 0 -> Finished stateLambdaCollected
         _ -> InvalidInput
