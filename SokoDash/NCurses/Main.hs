@@ -11,12 +11,21 @@ import Control.Applicative
 import System.IO
 import System.Environment
 
-decodeInput :: Event -> Maybe Input
-decodeInput (EventCharacter ' ') = Just Wait
-decodeInput (EventSpecialKey KeyUpArrow) = Just $ Dir DUp
-decodeInput (EventSpecialKey KeyDownArrow) = Just $ Dir DDown
-decodeInput (EventSpecialKey KeyLeftArrow) = Just $ Dir DLeft
-decodeInput (EventSpecialKey KeyRightArrow) = Just $ Dir DRight
+data Cmd = CmdInput Input
+         | CmdExit
+
+decodeDirKey :: Key -> Maybe Dir
+decodeDirKey key = case key of
+    KeyUpArrow -> Just DUp
+    KeyDownArrow -> Just DDown
+    KeyLeftArrow -> Just DLeft
+    KeyRightArrow -> Just DRight
+    _ -> Nothing
+
+decodeInput :: Event -> Maybe Cmd
+decodeInput (EventCharacter ' ') = Just $ CmdInput Wait
+decodeInput (EventSpecialKey key) = CmdInput . Dir <$> decodeDirKey key
+decodeInput (EventCharacter c) | toLower c == 'q' = Just CmdExit
 decodeInput _ = Nothing
 
 main :: IO ()
@@ -39,13 +48,15 @@ main = do
         flip fix s $ \loop s -> do
             redraw s
 
-            input <- waitFor w decodeInput
-            case processInput input s of
-                NewState s'    -> case simulate s' of
-                    SimulateNewState s'' -> loop s''
-                    SimulateDead n -> die n
-                Finished n     -> win n
-                InvalidInput   -> loop s
+            minput <- waitFor w decodeInput
+            case minput of
+                CmdExit -> return ()
+                CmdInput input -> case processInput input s of
+                    NewState s'    -> case simulate s' of
+                        SimulateNewState s'' -> loop s''
+                        SimulateDead n -> die n
+                    Finished n     -> win n
+                    InvalidInput   -> loop s
 
 waitFor :: Window -> (Event -> Maybe a) -> Curses a
 waitFor w decode = fix $ \loop -> do
