@@ -2,6 +2,7 @@
 {-# LANGUAGE TupleSections #-}
 module SokoDash.World
        ( Field(..), World, Pos, State(..)
+       , fieldToChar
        , parse
        ) where
 
