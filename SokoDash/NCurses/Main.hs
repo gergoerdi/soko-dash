@@ -1,4 +1,6 @@
 import SokoDash.NCurses.Render
+import SokoDash.NCurses.Input
+
 import SokoDash.World
 import SokoDash.Simulator
 
@@ -10,23 +12,6 @@ import UI.NCurses
 import Control.Applicative
 import System.IO
 import System.Environment
-
-data Cmd = CmdInput Input
-         | CmdExit
-
-decodeDirKey :: Key -> Maybe Dir
-decodeDirKey key = case key of
-    KeyUpArrow -> Just DUp
-    KeyDownArrow -> Just DDown
-    KeyLeftArrow -> Just DLeft
-    KeyRightArrow -> Just DRight
-    _ -> Nothing
-
-decodeInput :: Event -> Maybe Cmd
-decodeInput (EventCharacter ' ') = Just $ CmdInput Wait
-decodeInput (EventSpecialKey key) = CmdInput . Dir <$> decodeDirKey key
-decodeInput (EventCharacter c) | toLower c == 'q' = Just CmdExit
-decodeInput _ = Nothing
 
 main :: IO ()
 main = do
@@ -48,7 +33,7 @@ main = do
         flip fix s $ \loop s -> do
             redraw s
 
-            minput <- waitFor w decodeInput
+            minput <- waitFor w decodeEvent
             case minput of
                 CmdExit -> return ()
                 CmdInput input -> case processInput input s of
