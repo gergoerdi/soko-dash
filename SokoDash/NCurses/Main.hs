@@ -33,8 +33,8 @@ main = do
                     renderState s
                     moveCursor 0 0
                 render
-            die n = undefined
-            win n = undefined
+            die n = return ()
+            win n = return ()
 
         flip fix s $ \loop s -> do
             redraw s
@@ -46,7 +46,6 @@ main = do
                     SimulateDead n -> die n
                 Finished n     -> win n
                 InvalidInput   -> loop s
-        return ()
 
 waitFor :: Window -> (Event -> Maybe a) -> Curses a
 waitFor w decode = fix $ \loop -> do
