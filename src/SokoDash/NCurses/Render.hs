@@ -3,9 +3,7 @@ module SokoDash.NCurses.Render (renderState) where
 
 import SokoDash.World
 
-import Data.List (groupBy, transpose)
-import Data.Maybe (fromJust)
-import Control.Monad (zipWithM_)
+import Control.Monad (forM_)
 import Data.Array (Array)
 import qualified Data.Array as Array
 import Data.Function
@@ -13,19 +11,12 @@ import Data.Function
 import UI.NCurses
 
 renderState :: State -> Update ()
-renderState State{..} = zipWithM_ `flip` [0..] `flip` cells $ \i row -> do
-    moveCursor i 0
-    drawString $ map fieldToChar' row
+renderState State{..} = do
+    forM_ (Array.assocs stateWorld) . uncurry $ \pos f -> do
+        moveTo pos
+        drawString [fieldToChar open f]
+    moveTo statePos
+    drawString "R"
   where
     open = stateLambdaRemaining == 0
-
-    -- TODO: clean this up...
-    cells :: [[Maybe Field]]
-    cells = transpose . strip . toRows $ stateWorld
-      where
-        toRows = groupBy ((==) `on` (fst . fst)) . map addRobot . Array.assocs
-        addRobot (p, f) | p == statePos = (p, Nothing)
-                        | otherwise = (p, Just f)
-        strip = map (map snd)
-
-    fieldToChar' = maybe 'R' (fieldToChar open)
+    moveTo (x, y) = moveCursor (fromIntegral y) (fromIntegral x)
