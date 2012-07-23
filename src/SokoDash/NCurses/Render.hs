@@ -12,9 +12,9 @@ import UI.NCurses
 
 renderState :: State -> Update ()
 renderState State{..} = do
-    forM_ (Array.assocs stateWorld) . uncurry $ \pos f -> do
+    forM_ (Array.assocs stateWorld) . uncurry $ \pos field -> do
         moveTo pos
-        drawString [fieldToChar open f]
+        drawString [fieldToChar open field]
     moveTo statePos
     drawString "R"
   where
