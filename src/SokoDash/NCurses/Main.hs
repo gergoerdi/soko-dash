@@ -20,12 +20,12 @@ main = do
 
     runCurses $ do
         setEcho False
+        setCursorMode CursorInvisible
         w <- defaultWindow
 
         let redraw s = do
                 updateWindow w $ do
                     renderState s
-                    moveCursor 0 0
                 render
             die n = return ()
             win n = return ()
