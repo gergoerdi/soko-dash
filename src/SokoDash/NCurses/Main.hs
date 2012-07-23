@@ -31,7 +31,10 @@ main = do
         setCursorMode CursorInvisible
 
         w <- defaultWindow
-        let runUpdate u = updateWindow w u >> render
+        let runUpdate u = do
+                x <- updateWindow w u
+                render
+                return x
 
         let inp = sampleInput w $ \mev -> do
                 case decodeEvent =<< mev of
@@ -42,5 +45,5 @@ main = do
         game <- liftIO . start $ network s0 input clock
         driveNetwork (runUpdate . renderRunState <$> game) inp
   where
-    renderRunState (Running s) = renderState s
-    renderRunState _ = undefined
+    renderRunState (Running s) = renderState s >> return False
+    renderRunState _ = return True

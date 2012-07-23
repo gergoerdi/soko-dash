@@ -21,13 +21,14 @@ sampleInput w pushInput = do
   where
     yield = threadDelay 0
 
-driveNetwork :: (MonadIO m) => IO (m ()) -> m Bool -> m ()
+driveNetwork :: (MonadIO m) => IO (m Bool) -> m Bool -> m ()
 driveNetwork network clock = fix $ \loop -> do
     finished <- clock
-    if finished
-      then return ()
-      else join (liftIO network) >> loop
+    unless finished $ do
+        finished <- join (liftIO network)
+        unless finished loop
 
+{-
 runElerea :: Window -> (Signal (Maybe Event) -> SignalGen (Signal (Update ()))) -> Curses ()
 runElerea w driver = do
     (input, pushInput) <- liftIO $ external Nothing
@@ -35,6 +36,7 @@ runElerea w driver = do
     driveNetwork (update <$> network) (const False <$> (sampleInput w pushInput))
   where
     update u = updateWindow w u >> render
+-}
 
 mkClock :: Double -> IO (SignalGen (Signal Bool))
 mkClock seconds = do
